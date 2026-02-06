@@ -1,19 +1,19 @@
 substitutions:
   # Phases of the Voice Assistant
   # The voice assistant is ready to be triggered by a wake word
-  voice_assist_idle_phase_id: '1'
+  voice_assist_idle_phase_id: "1"
   # The voice assistant is waiting for a voice command (after being triggered by the wake word)
-  voice_assist_waiting_for_command_phase_id: '2'
+  voice_assist_waiting_for_command_phase_id: "2"
   # The voice assistant is listening for a voice command
-  voice_assist_listening_for_command_phase_id: '3'
+  voice_assist_listening_for_command_phase_id: "3"
   # The voice assistant is currently processing the command
-  voice_assist_thinking_phase_id: '4'
+  voice_assist_thinking_phase_id: "4"
   # The voice assistant is replying to the command
-  voice_assist_replying_phase_id: '5'
+  voice_assist_replying_phase_id: "5"
   # The voice assistant is not ready
-  voice_assist_not_ready_phase_id: '10'
+  voice_assist_not_ready_phase_id: "10"
   # The voice assistant encountered an error
-  voice_assist_error_phase_id: '11'
+  voice_assist_error_phase_id: "11"
 
 globals:
   # Global variable tracking the phase of the voice assistant (defined above). Initialized to not_ready
@@ -33,14 +33,13 @@ microphone:
     adc_type: external
     i2s_audio_id: i2s_shared
 
-
 micro_wake_word:
   id: mww
   models:
     - model: hey_jarvis
       id: hey_jarvis
     - model: okay_nabu
-      id: okay_nabu    
+      id: okay_nabu
     - model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
       id: stop
       internal: true
@@ -48,7 +47,7 @@ micro_wake_word:
   microphone:
     microphone: sat1_mics
     channels: 1
-    gain_factor: 6
+    gain_factor: 10
   stop_after_detection: false
   on_wake_word_detected:
     # If the wake word is detected when the device is muted (Possible with the software mute switch): Do nothing
@@ -91,14 +90,12 @@ micro_wake_word:
                             - voice_assistant.start:
                                 wake_word: !lambda return wake_word;
 
-
-
 voice_assistant:
   id: va
   microphone:
     microphone: sat1_mics
     channels: 0
-  
+
   media_player: external_media_player
   micro_wake_word: mww
   use_wake_word: false
@@ -126,15 +123,15 @@ voice_assistant:
     # Stop ducking audio.
     - mixer_speaker.apply_ducking:
         id: media_mixing_input
-        decibel_reduction: 0   # 0 dB means no reduction
+        decibel_reduction: 0 # 0 dB means no reduction
         duration: 1.0s
-  
+
   # When the voice assistant starts: Play a wake up sound, duck audio.
   on_start:
     - mixer_speaker.apply_ducking:
         id: media_mixing_input
-        decibel_reduction: 20   # Number of dB quieter; higher implies more quiet, 0 implies full volume
-        duration: 0.0s          # The duration of the transition (default is 0)
+        decibel_reduction: 20 # Number of dB quieter; higher implies more quiet, 0 implies full volume
+        duration: 0.0s # The duration of the transition (default is 0)
   on_listening:
     - lambda: id(voice_assistant_phase) = ${voice_assist_waiting_for_command_phase_id};
     - script.execute: control_leds
@@ -148,7 +145,7 @@ voice_assistant:
     - if:
         condition:
           # A nonempty x variable means a streaming TTS url was sent to the media player
-          lambda: 'return !x.empty();'
+          lambda: "return !x.empty();"
         then:
           - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
           - script.execute: control_leds
@@ -158,7 +155,7 @@ voice_assistant:
     - if:
         condition:
           # The intent_progress trigger didn't start the TTS Reponse
-          lambda: 'return id(voice_assistant_phase) != ${voice_assist_replying_phase_id};'
+          lambda: "return id(voice_assistant_phase) != ${voice_assist_replying_phase_id};"
         then:
           - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
           - script.execute: control_leds
@@ -172,7 +169,7 @@ voice_assistant:
     # Stop ducking audio.
     - mixer_speaker.apply_ducking:
         id: media_mixing_input
-        decibel_reduction: 0   # 0 dB means no reduction
+        decibel_reduction: 0 # 0 dB means no reduction
         duration: 1.0s
     # Stop the script that would potentially enable the stop word if the response is longer than a second
     - script.stop: activate_stop_word_if_tts_step_is_long
@@ -191,7 +188,7 @@ voice_assistant:
     # Reset the voice assistant phase id and reset the LED animations.
     - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
     - script.execute: control_leds
-    
+
   on_timer_finished:
     - switch.turn_on: timer_ringing
   on_timer_started:
@@ -202,7 +199,6 @@ voice_assistant:
     - script.execute: control_leds
   on_timer_tick:
     - script.execute: control_leds
-
 
 script:
   # Script used activate the stop word if the TTS step is long.
